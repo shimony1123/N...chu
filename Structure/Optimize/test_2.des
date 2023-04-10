@@ -1,0 +1,13 @@
+12
+QGYHUMBQYSP:WingGeom:XSec_0:Twist: 3.3945
+POBKBLNAAKQ:WingGeom:Xsec_1:Twist: 2.6978
+VJHVLHBXWLR:WingGeom:Xsec_2:Twist: 1.9309
+MFJRWDJANXR:WingGeom:XSecCurve_0:ThickChord: 0.34836
+TMFMGLLVVZM:WingGeom:XSecCurve_0:Camber: 0.027017
+VAIQDPMKQRU:WingGeom:XSecCurve_0:CamberLoc: 0.066393
+CRJDFXJSWTY:WingGeom:XSecCurve_1:ThickChord: 0.14237
+BUXNDMKDJHY:WingGeom:XSecCurve_1:Camber: 0.020793
+EGTLMAPLVLJ:WingGeom:XSecCurve_1:CamberLoc: 0.55744
+NPMGKHPNCOP:WingGeom:XSecCurve_2:ThickChord: 0.094689
+MQAQFDXRAFQ:WingGeom:XSecCurve_2:Camber: 0.015994
+DQASSOKIGSL:WingGeom:XSecCurve_2:CamberLoc: 0.056072

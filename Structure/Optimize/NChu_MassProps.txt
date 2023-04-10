@@ -1,0 +1,17 @@
+WARNING: 1 open meshes merged
+     Merged: WingGeom
+...Mass Properties...
+1 Num Comps
+1 Total Num Meshes
+1520 Total Num Tris
+
+0.010715             Total Mass
+0.088197 -0.000001 0.042143       Center of Gravity
+0.002419 0.000036 0.002434       Ixx, Iyy, Izz
+-0.000000 -0.000001 0.000000       Ixy, Ixz, Iyz
+0.010715             Volume
+
+Name	Mass	cgX	cgY	cgZ	Ixx	Iyy	Izz	Ixy	Ixz	Iyz	Volume
+WingGeom	0.010715	0.088197	-0.000001	0.042143	0.002419	0.000036	0.002434	-0.000000	-0.000001	0.000000	0.010715
+Name	Mass	cgX	cgY	cgZ	Ixx	Iyy	Izz	Ixy	Ixz	Iyz	Volume
+Totals	0.010715	0.088197	-0.000001	0.042143	0.002419	0.000036	0.002434	-0.000000	-0.000001	0.000000	0.010715

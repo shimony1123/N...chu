@@ -1,0 +1,21 @@
+void main()
+{   //2021/09/18 Ju-Hoe Kim, University of Tokyo, Tsuhciya-Ito Labolatory
+	ReadApplyDESFile ("test_2.des");
+
+    // Mass Properties
+    string MPid = ComputeMassProps( SET_ALL, 50 );
+    DeleteGeom(MPid);
+    
+    // Degenerate Geometry for VLM
+    SetComputationFileName( DEGEN_GEOM_CSV_TYPE,"NChu_DegenGeom.csv");
+    ComputeDegenGeom( 0, DEGEN_GEOM_CSV_TYPE );
+    
+    // Componet Geometory for wetted area and volume
+    string CGid = ComputeCompGeom( SET_ALL, false, COMP_GEOM_TXT_TYPE);//
+    DeleteGeom(CGid);
+    
+    // Make tri file for stl convert 
+    ExportFile("NChu.stl",SET_ALL,EXPORT_STL);//
+
+
+}
