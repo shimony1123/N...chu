@@ -16,7 +16,7 @@ void printAttitude(float ax, float ay, float az, float mx, float my, float mz);
 
 void setup(){
   Serial.begin(115200);
-  Wire.begin();//SCL,SDAの順
+  Wire.begin();
 
   //成功判定
   if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire)){
