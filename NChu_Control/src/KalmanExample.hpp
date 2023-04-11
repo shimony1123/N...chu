@@ -3,9 +3,6 @@
 
 struct KalmanFilter{
     //システム変数
-    int n;
-    int m;
-    int r;
     Eigen::MatrixXf A;
     Eigen::MatrixXf B;
     Eigen::MatrixXf C;
@@ -16,7 +13,7 @@ struct KalmanFilter{
     Eigen::VectorXf x;
     Eigen::VectorXf y;
 
-    KalmanFilter(int n, int m, int r, Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf C, Eigen::MatrixXf Q, 
+    void setmatrix(Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf C, Eigen::MatrixXf Q, 
     Eigen::MatrixXf R, Eigen::MatrixXf P, Eigen::VectorXf x);
 
     void update(Eigen::VectorXf y);

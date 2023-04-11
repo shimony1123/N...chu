@@ -1,11 +1,9 @@
 #include "KalmanExample.hpp"
 
 //値を代入する関数
-KalmanFilter::KalmanFilter(int n_in, int m_in, int r_in, Eigen::MatrixXf A_in, Eigen::MatrixXf B_in, Eigen::MatrixXf C_in,
+void KalmanFilter::setmatrix(Eigen::MatrixXf A_in, Eigen::MatrixXf B_in, Eigen::MatrixXf C_in,
 Eigen::MatrixXf Q_in, Eigen::MatrixXf R_in, Eigen::MatrixXf P_in, Eigen::VectorXf x_in){
-    n = n_in;
-    m = m_in;
-    r = r_in;
+	//nは状態変数の数、mは観測変数の次元、rは
     A = A_in;
  	B = B_in;
  	C = C_in;

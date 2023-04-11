@@ -6,18 +6,12 @@
 #define PRINT_SPEED 250
 #define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
 
-LSM9DS1 imu;
-static unsigned long lastPrint;
+//static unsigned long lastPrint;
 
-void printGyro()
+void printGyro(LSM9DS1 &imu)
 {
-  // Now we can use the gx, gy, and gz variables as we please.
-  // Either print them as raw ADC values, or calculated in DPS.
   Serial.print("G: ");
 #ifdef PRINT_CALCULATED
-  // If you want to print calculated values, you can use the
-  // calcGyro helper function to convert a raw ADC value to
-  // DPS. Give the function the value that you want to convert.
   Serial.print(imu.calcGyro(imu.gx), 2);
   Serial.print(", ");
   Serial.print(imu.calcGyro(imu.gy), 2);
@@ -33,7 +27,7 @@ void printGyro()
 #endif
 }
 
-void printAccel()
+void printAccel(LSM9DS1 &imu)
 {
   // Now we can use the ax, ay, and az variables as we please.
   // Either print them as raw ADC values, or calculated in g's.
@@ -57,7 +51,7 @@ void printAccel()
 #endif
 }
 
-void printMag()
+void printMag(LSM9DS1 &imu)
 {
   // Now we can use the mx, my, and mz variables as we please.
   // Either print them as raw ADC values, or calculated in Gauss.
@@ -81,7 +75,7 @@ void printMag()
   #endif
 }
 
-void printAttitude(float ax, float ay, float az, float mx, float my, float mz)
+void printAttitude(LSM9DS1 &imu, float ax, float ay, float az, float mx, float my, float mz)
 {
   float roll = atan2(ay, az);
   float pitch = atan2(-ax, sqrt(ay * ay + az * az));
