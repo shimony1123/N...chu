@@ -9,6 +9,12 @@
 
 LSM9DS1 imu;
 static unsigned long lastPrint;
+float roll;
+float pitch;
+float yaw;
+float gyrox;
+float gyroy;
+float gyroz;
 Eigen::MatrixXf A_in;
 Eigen::MatrixXf B_in;
 Eigen::MatrixXf C_in;
@@ -22,15 +28,40 @@ KalmanFilter kalmanfilter;
 void printGyro(LSM9DS1 &imu);
 void printAccel(LSM9DS1 &imu);
 void printMag(LSM9DS1 &imu);
-void printAttitude(LSM9DS1 &imu, float ax, float ay, float az, float mx, float my, float mz);
+
+void printAttitude(LSM9DS1 &imu, float ax, float ay, float az, float mx, float my, float mz)
+{
+  roll = atan2(ay, az);
+  pitch = atan2(-ax, sqrt(ay * ay + az * az));
+
+  if (my == 0)
+    yaw = (mx < 0) ? PI : 0;
+  else
+    yaw = atan2(mx, my);
+
+  yaw -= DECLINATION * PI / 180;
+
+  if (yaw > PI) yaw -= (2 * PI);
+  else if (yaw < -PI) yaw += (2 * PI);
+
+  // Convert everything from radians to degrees:
+  yaw *= 180.0 / PI;
+  pitch *= 180.0 / PI;
+  roll  *= 180.0 / PI;
+
+  Serial.print("Pitch, Roll: ");
+  Serial.print(pitch, 2);
+  Serial.print(", ");
+  Serial.println(roll, 2);
+  Serial.print("yaw: "); Serial.println(yaw, 2);
+}
 
 void setup(){
   Serial.begin(115200);
   Wire.begin();
-  kalmanfilter.setmatrix(A_in, B_in, C_in, Q_in, R_in, P_in, x_in);
+  kalmanfilter.setmatrix(B_in, Q_in, R_in, P_in, x_in);
 
-  //ここでそれぞれの行列を初期化
-  
+  //ここでA_in, B_in, C_in, Q_in, R_in, P_in, x_inそれぞれを初期化
 
   //成功判定
   if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire)){
@@ -56,6 +87,9 @@ void loop() {
   }
 
   if ((lastPrint + PRINT_SPEED) < millis()){
+    gyrox = imu.calcGyro(imu.gx);
+    gyroy = imu.calcGyro(imu.gy);
+    gyroz = imu.calcGyro(imu.gz);
     printGyro(imu);  // Print "G: gx, gy, gz"
     printAccel(imu); // Print "A: ax, ay, az"
     printMag(imu);   // Print "M: mx, my, mz"
