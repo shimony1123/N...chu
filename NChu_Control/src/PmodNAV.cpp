@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include "ArduinoEigen.h"
 #include "SparkFunLSM9DS1.h"
 
 #define PRINT_CALCULATED
@@ -8,15 +9,17 @@
 
 //static unsigned long lastPrint;
 
-void printGyro(LSM9DS1 &imu)
-{
+void printGyro(LSM9DS1 &imu, Eigen::VectorXf gyro){
+  gyro(0) = imu.calcGyro(imu.gx);
+  gyro(1) = imu.calcGyro(imu.gy);
+  gyro(2) = imu.calcGyro(imu.gz);
   Serial.print("G: ");
 #ifdef PRINT_CALCULATED
-  Serial.print(imu.calcGyro(imu.gx), 2);
+  Serial.print(gyro(0), 2);
   Serial.print(", ");
-  Serial.print(imu.calcGyro(imu.gy), 2);
+  Serial.print(gyro(1), 2);
   Serial.print(", ");
-  Serial.print(imu.calcGyro(imu.gz), 2);
+  Serial.print(gyro(2), 2);
   Serial.println(" deg/s");
 #elif defined PRINT_RAW
   Serial.print(imu.gx);
@@ -27,20 +30,18 @@ void printGyro(LSM9DS1 &imu)
 #endif
 }
 
-void printAccel(LSM9DS1 &imu)
-{
-  // Now we can use the ax, ay, and az variables as we please.
-  // Either print them as raw ADC values, or calculated in g's.
+void printAccel(LSM9DS1 &imu, Eigen::VectorXf acc){
+  acc(0) = imu.calcAccel(imu.ax);
+  acc(1) = imu.calcAccel(imu.ay);
+  acc(2) = imu.calcAccel(imu.az);
+
   Serial.print("A: ");
 #ifdef PRINT_CALCULATED
-  // If you want to print calculated values, you can use the
-  // calcAccel helper function to convert a raw ADC value to
-  // g's. Give the function the value that you want to convert.
-  Serial.print(imu.calcAccel(imu.ax), 2);
+  Serial.print(acc(0), 2);
   Serial.print(", ");
-  Serial.print(imu.calcAccel(imu.ay), 2);
+  Serial.print(acc(1), 2);
   Serial.print(", ");
-  Serial.print(imu.calcAccel(imu.az), 2);
+  Serial.print(acc(2), 2);
   Serial.println(" g");
 #elif defined PRINT_RAW
   Serial.print(imu.ax);
@@ -51,20 +52,18 @@ void printAccel(LSM9DS1 &imu)
 #endif
 }
 
-void printMag(LSM9DS1 &imu)
-{
-  // Now we can use the mx, my, and mz variables as we please.
-  // Either print them as raw ADC values, or calculated in Gauss.
+void printMag(LSM9DS1 &imu, Eigen::VectorXf mag){
+  mag(0) = imu.calcMag(imu.mx);
+  mag(1) = imu.calcMag(imu.my);
+  mag(2) = imu.calcMag(imu.mz);
+
   Serial.print("M: ");
   #ifdef PRINT_CALCULATED
-  // If you want to print calculated values, you can use the
-  // calcMag helper function to convert a raw ADC value to
-  // Gauss. Give the function the value that you want to convert.
-  Serial.print(imu.calcMag(imu.mx), 2);
+  Serial.print(mag(0), 2);
   Serial.print(", ");
-  Serial.print(imu.calcMag(imu.my), 2);
+  Serial.print(mag(1), 2);
   Serial.print(", ");
-  Serial.print(imu.calcMag(imu.mz), 2);
+  Serial.print(mag(2), 2);
   Serial.println(" gauss");
   #elif defined PRINT_RAW
   Serial.print(imu.mx);
@@ -73,4 +72,30 @@ void printMag(LSM9DS1 &imu)
   Serial.print(", ");
   Serial.println(imu.mz);
   #endif
+}
+
+void printAttitude(LSM9DS1 &imu, Eigen::VectorXf acc, Eigen::VectorXf mag, Eigen::VectorXf euler){
+  euler(0) = atan2(acc(1), acc(2)); //roll
+  euler(1) = atan2(-acc(0), sqrt(acc(1) * acc(1) + acc(2) * acc(2)));
+
+  if (mag(1) == 0)
+    euler(2) = (mag(0) < 0) ? PI : 0;
+  else
+    euler(2) = atan2(mag(0), mag(1));
+
+  euler(2) -= DECLINATION * PI / 180;
+
+  if (euler(2) > PI) euler(2) -= (2 * PI);
+  else if (euler(2) < -PI) euler(2) += (2 * PI);
+
+  // Convert everything from radians to degrees:
+  euler(0) *= 180.0 / PI;
+  euler(1) *= 180.0 / PI;
+  euler(2) *= 180.0 / PI;
+
+  Serial.print("Roll, Pitch: ");
+  Serial.print(euler(0), 2);
+  Serial.print(", ");
+  Serial.println(euler(1), 2);
+  Serial.print("Yaw: "); Serial.println(euler(2), 2);
 }

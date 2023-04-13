@@ -9,70 +9,48 @@
 
 LSM9DS1 imu;
 static unsigned long lastPrint;
-float roll;
-float pitch;
-float yaw;
-float gyrox;
-float gyroy;
-float gyroz;
-Eigen::MatrixXf A_in;
-Eigen::MatrixXf B_in;
-Eigen::MatrixXf C_in;
-Eigen::MatrixXf Q_in;
-Eigen::MatrixXf R_in;
-Eigen::MatrixXf P_in;
-Eigen::VectorXf x_in;
+// Eigen::MatrixXf A_in;
+// Eigen::MatrixXf B_in;
+// Eigen::MatrixXf C_in;
+// Eigen::MatrixXf Q_in;
+// Eigen::MatrixXf R_in;
+// Eigen::MatrixXf P_in;
+// Eigen::VectorXf x_in;
+Eigen::VectorXf gyro;
+Eigen::VectorXf acc;
+Eigen::VectorXf mag;
+Eigen::VectorXf euler;
 
 KalmanFilter kalmanfilter;
 
-void printGyro(LSM9DS1 &imu);
-void printAccel(LSM9DS1 &imu);
-void printMag(LSM9DS1 &imu);
-
-void printAttitude(LSM9DS1 &imu, float ax, float ay, float az, float mx, float my, float mz)
-{
-  roll = atan2(ay, az);
-  pitch = atan2(-ax, sqrt(ay * ay + az * az));
-
-  if (my == 0)
-    yaw = (mx < 0) ? PI : 0;
-  else
-    yaw = atan2(mx, my);
-
-  yaw -= DECLINATION * PI / 180;
-
-  if (yaw > PI) yaw -= (2 * PI);
-  else if (yaw < -PI) yaw += (2 * PI);
-
-  // Convert everything from radians to degrees:
-  yaw *= 180.0 / PI;
-  pitch *= 180.0 / PI;
-  roll  *= 180.0 / PI;
-
-  Serial.print("Pitch, Roll: ");
-  Serial.print(pitch, 2);
-  Serial.print(", ");
-  Serial.println(roll, 2);
-  Serial.print("yaw: "); Serial.println(yaw, 2);
-}
+void printGyro(LSM9DS1 &imu, Eigen::VectorXf gyro); //gyroの値を更新
+void printAccel(LSM9DS1 &imu, Eigen::VectorXf acc); //加速度の値を更新
+void printMag(LSM9DS1 &imu, Eigen::VectorXf mag); //地磁気の値を更新
+void printAttitude(LSM9DS1 &imu, Eigen::VectorXf acc, Eigen::VectorXf mag, Eigen::VectorXf euler); //オイラー角の値を更新
 
 void setup(){
   Serial.begin(115200);
   Wire.begin();
-  kalmanfilter.setmatrix(B_in, Q_in, R_in, P_in, x_in);
+  //kalmanfilter.setmatrix(B_in, Q_in, R_in, P_in, x_in);
 
   //ここでA_in, B_in, C_in, Q_in, R_in, P_in, x_inそれぞれを初期化
 
   //成功判定
-  if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire)){
+  if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire))
+  {
     Serial.println("Failed to communicate with LSM9DS1.");
     }
-  else{
+  else
+  {
     Serial.println("Succeeded to communicate with LSM9DS1.");
-    }
+    if ( imu.magAvailable() ){
+      imu.readMag();
+      }
+    kalmanfilter.mag_calib << imu.mx,imu.my,imu.mz;
+  }
 }
 
-void loop() {
+void loop(){
   //PModでデータを得るところ
   if (imu.gyroAvailable()){
     imu.readGyro();
@@ -87,13 +65,10 @@ void loop() {
   }
 
   if ((lastPrint + PRINT_SPEED) < millis()){
-    gyrox = imu.calcGyro(imu.gx);
-    gyroy = imu.calcGyro(imu.gy);
-    gyroz = imu.calcGyro(imu.gz);
-    printGyro(imu);  // Print "G: gx, gy, gz"
-    printAccel(imu); // Print "A: ax, ay, az"
-    printMag(imu);   // Print "M: mx, my, mz"
-    printAttitude(imu, imu.ax, imu.ay, imu.az, -imu.my, -imu.mx, imu.mz);
+    printGyro(imu,gyro);  // Print "G: gx, gy, gz"
+    printAccel(imu,acc); // Print "A: ax, ay, az"
+    printMag(imu,mag);   // Print "M: mx, my, mz"
+    printAttitude(imu, acc, mag, euler);
     Serial.println();
 
     lastPrint = millis(); // Update lastPrint time
