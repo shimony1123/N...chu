@@ -5,9 +5,9 @@
 
 void KalmanFilter::update(Eigen::VectorXf y, Eigen::VectorXf gyro, Eigen::VectorXf acc, Eigen::VectorXf mag, float dt) {
 	x += f(x,gyro);
-  	F = Jf(dt);
+  	F = Jf(x,gyro);
   	P = F * P * F.transpose() + B * Q * B.transpose();
-  	H = Jh();
+  	H = Jh(x);
   	Eigen::MatrixXf G = P * H.transpose() * (H * P * H.transpose() + R).inverse();
   	x += G * (y - h(x));
   	P -= G*H*P;
@@ -66,7 +66,8 @@ Eigen::VectorXf KalmanFilter::h(Eigen::VectorXf x){
 	R_total << R,0,
 	           0,R;
 	Eigen::VectorXf earth;
-	earth << 0, 0, 9.80665, mag_calib(0), mag_calib(1), mag_calib(2);
+	float g = 9.80665;
+	earth << 0, 0, g, mag_calib(0), mag_calib(1), mag_calib(2);
 	return R_total*earth;
 	//返り値は観測量で、[ax,ay,az,mx,my,mz]
 }

@@ -13,16 +13,16 @@ struct KalmanFilter{
     Eigen::MatrixXf H;
  	
  	// 更新していく状態量
- 	Eigen::MatrixXf P; //誤差共分散の予測値
- 	Eigen::VectorXf x;
-	Eigen::VectorXf mag_calib; //地磁気の初期値
+ 	Eigen::MatrixXf P; //誤差共分散の予測値。setupで初期値の設定が必要。
+ 	Eigen::VectorXf x; //setupで初期値の設定が必要。
+	Eigen::VectorXf mag_calib; //地磁気の初期値。setupでPmodから取る。
  	
  	void update(Eigen::VectorXf y, Eigen::VectorXf gyro, Eigen::VectorXf acc, Eigen::VectorXf mag, float dt);
  	Eigen::VectorXf get_x(Eigen::VectorXf euler);
  	Eigen::VectorXf f(Eigen::VectorXf x, Eigen::VectorXf euler); // 状態方程式のf。クォータニオンの時間微分を返す。
  	Eigen::VectorXf h(Eigen::VectorXf x); // 観測方程式のh
- 	Eigen::MatrixXf Jf(float dt); // fのJacobian
- 	Eigen::MatrixXf Jh(); // hのJacobian
+ 	Eigen::MatrixXf Jf(Eigen::VectorXf x, Eigen::VectorXf gyro); // fのJacobian
+ 	Eigen::MatrixXf Jh(Eigen::VectorXf x); // hのJacobian
  };
 
  // struct KalmanFilter{
