@@ -62,10 +62,13 @@ Eigen::VectorXf KalmanFilter::h(Eigen::VectorXf x){
 	R(2, 0) = 2.0f*(q1*q3 - q0*q2);
 	R(2, 1) = 2.0f*(q2*q3 + q0*q1);
 	R(1, 2) = 2.0f*(q2*q3 + q0*q1);
-
+	Eigen::MatrixXf R_total;
+	R_total << R,0,
+	           0,R;
 	Eigen::VectorXf earth;
 	earth << 0, 0, 9.80665, mag_calib(0), mag_calib(1), mag_calib(2);
-	return R*earth;
+	return R_total*earth;
+	//返り値は観測量で、[ax,ay,az,mx,my,mz]
 }
 
  //線形kf
