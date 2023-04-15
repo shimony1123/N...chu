@@ -66,12 +66,35 @@ Eigen::VectorXf KalmanFilter::h(Eigen::VectorXf x){
 	R_total << R,0,
 	           0,R;
 	Eigen::VectorXf earth;
-	float g = 9.80665;
 	earth << 0, 0, g, mag_calib(0), mag_calib(1), mag_calib(2);
 	return R_total*earth;
 	//返り値は観測量で、[ax,ay,az,mx,my,mz]
 }
 
+Eigen::MatrixXf KalmanFilter::Jf(Eigen::VectorXf x, Eigen::VectorXf gyro){
+	
+}
+
+Eigen::MatrixXf KalmanFilter::Jh(Eigen::VectorXf x){
+	float q0,q1,q2,q3,mx,my,mz;
+	q0 = x(0);
+	q1 = x(1);
+	q2 = x(2);
+	q3 = x(3);
+	mx = mag_calib(0);
+	my = mag_calib(1);
+	mz = mag_calib(2);
+
+	Eigen::MatrixXf F; //Fはf(x)のJacobian
+	F << 2*g*q2, 2*g*q3, 2*g*q0, 2*g*q1,
+	     -2*g*q1, -2*g*q0, 2*g*q3, 2*g*q2,
+		 2*g*q0, -2*g*q1, -2*g*q2, 2*g*q3,
+		 2*mx*q0-2*my*q3+2*mz*q2, 2*mx*q1+2*my*q2+2*mz*q3, -2*mx*q2+2*my*q1+2*mz*q0, -2*mx*q3-2*my*q0+2*mz*q1,
+		 2*mx*q3+2*my*q0-2*mz*q1, 2*mx*q2-2*my*q1-2*mz*q0, 2*mx*q1+2*my*q2+2*mz*q3, 2*mx*q0-2*my*q3+2*mz*q2,
+		 -2*mx*q2+2*my*q1+2*mz*q0, 2*mx*q3+2*my*q0-2*mz*q1, -2*mx*q0+2*my*q3-2*mz*q2, 2*mx*q1+2*my*q2+2*mz*q3;
+
+	return F;
+}
  //線形kf
 // //値を代入する関数
 // void KalmanFilter::setmatrix(Eigen::MatrixXf A_in, Eigen::MatrixXf B_in, Eigen::MatrixXf C_in,
