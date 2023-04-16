@@ -15,10 +15,12 @@ struct KalmanFilter{
  	// 更新していく状態量
  	Eigen::MatrixXf P; //誤差共分散の予測値。setupで初期値の設定が必要。
  	Eigen::VectorXf x; //setupで初期値の設定が必要。
+
+	//初期値
 	Eigen::VectorXf mag_calib; //地磁気の初期値。setupでPmodから取る。
 
 	//重力加速度(定数)
-	float g = 9.80665;
+	const float g = 9.80665;
  	
  	void update(Eigen::VectorXf y, Eigen::VectorXf gyro, Eigen::VectorXf acc, Eigen::VectorXf mag, float dt);
  	Eigen::VectorXf get_x(Eigen::VectorXf euler);

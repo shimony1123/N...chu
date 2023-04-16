@@ -9,17 +9,11 @@
 
 LSM9DS1 imu;
 static unsigned long lastPrint;
-// Eigen::MatrixXf A_in;
-// Eigen::MatrixXf B_in;
-// Eigen::MatrixXf C_in;
-// Eigen::MatrixXf Q_in;
-// Eigen::MatrixXf R_in;
-// Eigen::MatrixXf P_in;
-// Eigen::VectorXf x_in;
 Eigen::VectorXf gyro;
 Eigen::VectorXf acc;
 Eigen::VectorXf mag;
 Eigen::VectorXf euler;
+Eigen::MatrixXf P_ini; //Pの初期値
 
 KalmanFilter kalmanfilter;
 
@@ -27,6 +21,21 @@ void printGyro(LSM9DS1 &imu, Eigen::VectorXf gyro); //gyroの値を更新
 void printAccel(LSM9DS1 &imu, Eigen::VectorXf acc); //加速度の値を更新
 void printMag(LSM9DS1 &imu, Eigen::VectorXf mag); //地磁気の値を更新
 void printAttitude(LSM9DS1 &imu, Eigen::VectorXf acc, Eigen::VectorXf mag, Eigen::VectorXf euler); //オイラー角の値を更新
+
+void calib(){
+  //地磁気calibration
+  if (imu.magAvailable()){
+      imu.readMag();
+      }
+  kalmanfilter.mag_calib << imu.calcMag(imu.mx),imu.calcMag(imu.my),imu.calcMag(imu.mz);
+
+  //行列Pの初期化
+  /*P_ini << 代入*/
+  kalmanfilter.P = P_ini;
+
+  //状態量x(クォータニオン)の初期化
+  kalmanfilter.x << 1.0, 0, 0, 0; //オイラー角が全て0[deg]に対応
+}
 
 void setup(){
   Serial.begin(115200);
@@ -43,10 +52,8 @@ void setup(){
   else
   {
     Serial.println("Succeeded to communicate with LSM9DS1.");
-    if ( imu.magAvailable() ){
-      imu.readMag();
-      }
-    kalmanfilter.mag_calib << imu.mx,imu.my,imu.mz;
+    //成功したらcalibration
+    calib();
   }
 }
 

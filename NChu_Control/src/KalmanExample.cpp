@@ -10,7 +10,7 @@ void KalmanFilter::update(Eigen::VectorXf y, Eigen::VectorXf gyro, Eigen::Vector
   	H = Jh(x);
   	Eigen::MatrixXf G = P * H.transpose() * (H * P * H.transpose() + R).inverse();
   	x += G * (y - h(x));
-  	P -= G*H*P;
+  	P -= G * H * P;
 	}
 
 Eigen::VectorXf KalmanFilter::get_x(Eigen::VectorXf euler){
@@ -72,7 +72,13 @@ Eigen::VectorXf KalmanFilter::h(Eigen::VectorXf x){
 }
 
 Eigen::MatrixXf KalmanFilter::Jf(Eigen::VectorXf x, Eigen::VectorXf gyro){
-	
+	Eigen::Matrix4f F; //Fはf(x)のJacobian
+	F << gyro(3),gyro(2),-gyro(1),0,
+	     -gyro(2),gyro(3),0,gyro(1),
+		 gyro(1),0,gyro(3),gyro(2),
+		 0,-gyro(1),-gyro(2),gyro(3);
+
+	return F;
 }
 
 Eigen::MatrixXf KalmanFilter::Jh(Eigen::VectorXf x){
@@ -85,7 +91,7 @@ Eigen::MatrixXf KalmanFilter::Jh(Eigen::VectorXf x){
 	my = mag_calib(1);
 	mz = mag_calib(2);
 
-	Eigen::MatrixXf F; //Fはf(x)のJacobian
+	Eigen::MatrixXf H; //Hはh(x)のJacobian
 	F << 2*g*q2, 2*g*q3, 2*g*q0, 2*g*q1,
 	     -2*g*q1, -2*g*q0, 2*g*q3, 2*g*q2,
 		 2*g*q0, -2*g*q1, -2*g*q2, 2*g*q3,
@@ -93,7 +99,7 @@ Eigen::MatrixXf KalmanFilter::Jh(Eigen::VectorXf x){
 		 2*mx*q3+2*my*q0-2*mz*q1, 2*mx*q2-2*my*q1-2*mz*q0, 2*mx*q1+2*my*q2+2*mz*q3, 2*mx*q0-2*my*q3+2*mz*q2,
 		 -2*mx*q2+2*my*q1+2*mz*q0, 2*mx*q3+2*my*q0-2*mz*q1, -2*mx*q0+2*my*q3-2*mz*q2, 2*mx*q1+2*my*q2+2*mz*q3;
 
-	return F;
+	return H;
 }
  //線形kf
 // //値を代入する関数
