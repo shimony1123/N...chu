@@ -30,7 +30,10 @@ void calib(){
   kalmanfilter.mag_calib << imu.calcMag(imu.mx),imu.calcMag(imu.my),imu.calcMag(imu.mz);
 
   //行列Pの初期化
-  /*P_ini << 代入*/
+  P_ini << 1.0, 0, 0, 0,
+           0, 1.0, 0, 0,
+           0, 0, 1.0, 0,
+           0, 0, 0, 1.0;
   kalmanfilter.P = P_ini;
 
   //状態量x(クォータニオン)の初期化
