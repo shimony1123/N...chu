@@ -4,12 +4,12 @@
 1520 Total Num Tris
 
 Theo_Area   Wet_Area   Theo_Vol    Wet_Vol  Name
-    0.881      0.881      0.011      0.011  WingGeom       
+    0.921      0.921      0.020      0.020  WingGeom       
 -------------------------------------------------
-    0.881      0.881      0.011      0.011  Totals         
+    0.921      0.921      0.020      0.020  Totals         
 
 Tag_Theo_Area   Tag_Wet_Area    Tag_Name
-        0.440          0.440    WingGeom_Surf0 
-        0.440          0.440    WingGeom_Surf1 
+        0.461          0.461    WingGeom_Surf0 
+        0.461          0.461    WingGeom_Surf1 
 WARNING: 1 open meshes merged
      Merged: WingGeom

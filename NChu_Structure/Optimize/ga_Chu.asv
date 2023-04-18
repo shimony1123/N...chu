@@ -3,18 +3,18 @@ clear;
 FILE="NChu";
 
 x0 = [
-    3,%Sec0 Twist
-    1,%Sec1 Twist
-    -1%Sec2 Twist
+    3,%取り付け角
+    1,%Sec1 ねじり下げ
+    -1%Sec2 ねじり下げ
     0.12,%Sec0 T/c
     0.02,%Sec0 Camber
     0.4,%Sec0 Camber Location
-    0.12,%Sec1 T/c
-    0.02,%Sec1 Camber
-    0.4,%Sec1 Camber Location
-    0.12,%Sec2 T/c
-    0.02,%Sec2 Camber
-    0.4,%Sec2 Camber Location
+    0.12,%Sec0 T/c
+    0.02,%Sec0 Camber
+    0.4,%Sec0 Camber Location
+    0.12,%Sec0 T/c
+    0.02,%Sec0 Camber
+    0.4,%Sec0 Camber Location
     ];
 vspvar = [0.001,0,0]; %Mach AoA Beta
 A = [
@@ -27,7 +27,7 @@ b = [0,0,0,0];
 Aeq = [];
 beq = [];
 lb = [0,-5,-8,0.06,0.01,0.25,0.06,0.01,0.25,0.06,0.01,0.25];%下限
-ub = [6 ,3 ,3,0.20,0.04 ,1.0,0.20,0.04 ,1.0,0.20,0.04 ,1.0];%上限
+ub = [6 ,3 ,3,0.36,0.06 ,1.0,0.36,0.06 ,1.0,0.36,0.06 ,1.0];%上限
 
 opts = optimoptions('ga','MaxGenerations',10,'PopulationSize',10,'PlotFcn','gaplotbestf');
 %,'PlotFcn','gaplotbestf'

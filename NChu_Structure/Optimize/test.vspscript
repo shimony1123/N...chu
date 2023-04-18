@@ -1,6 +1,6 @@
 void main()
 {   //2021/09/18 Ju-Hoe Kim, University of Tokyo, Tsuhciya-Ito Labolatory
-	ReadApplyDESFile ("test_2.des");
+	ReadApplyDESFile ("New_NChu.des");
 
     // Mass Properties
     string MPid = ComputeMassProps( SET_ALL, 50 );
