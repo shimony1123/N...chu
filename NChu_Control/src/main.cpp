@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "SparkFunLSM9DS1.h"
-#include "KalmanExample.hpp"
+#include "KalmanFilter.hpp"
 
 #define PRINT_CALCULATED
 #define PRINT_SPEED 250
