@@ -9,17 +9,19 @@
 
 LSM9DS1 imu;
 static unsigned long lastPrint;
-Eigen::VectorXf gyro;
-Eigen::VectorXf acc;
-Eigen::VectorXf mag;
-Eigen::VectorXf euler;
-Eigen::MatrixXf P_ini; //Pの初期値
+float dt; //刻み幅
+Eigen::Vector3f gyro;
+Eigen::Vector3f acc;
+Eigen::Vector3f mag;
+//Eigen::Vector3f euler;
+Eigen::MatrixXf P_ini = Eigen::MatrixXf::Zero(4, 4); //Pの初期値
+Eigen::Vector3f filtered_euler;
 
 KalmanFilter kalmanfilter;
 
-void printGyro(LSM9DS1 &imu, Eigen::VectorXf gyro); //gyroの値を更新
-void printAccel(LSM9DS1 &imu, Eigen::VectorXf acc); //加速度の値を更新
-void printMag(LSM9DS1 &imu, Eigen::VectorXf mag); //地磁気の値を更新
+void inputGyro(LSM9DS1 &imu, Eigen::VectorXf gyro); //gyroの値を更新
+void inputAccel(LSM9DS1 &imu, Eigen::VectorXf acc); //加速度の値を更新
+void inputMag(LSM9DS1 &imu, Eigen::VectorXf mag); //地磁気の値を更新
 void printAttitude(LSM9DS1 &imu, Eigen::VectorXf acc, Eigen::VectorXf mag, Eigen::VectorXf euler); //オイラー角の値を更新
 
 void calib(){
@@ -43,9 +45,6 @@ void calib(){
 void setup(){
   Serial.begin(115200);
   Wire.begin();
-  //kalmanfilter.setmatrix(B_in, Q_in, R_in, P_in, x_in);
-
-  //ここでA_in, B_in, C_in, Q_in, R_in, P_in, x_inそれぞれを初期化
 
   //成功判定
   if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire))
@@ -56,7 +55,7 @@ void setup(){
   {
     Serial.println("Succeeded to communicate with LSM9DS1.");
     //成功したらcalibration
-    calib();
+    //calib();
   }
 }
 
@@ -75,11 +74,14 @@ void loop(){
   }
 
   if ((lastPrint + PRINT_SPEED) < millis()){
-    printGyro(imu,gyro);  // Print "G: gx, gy, gz"
-    printAccel(imu,acc); // Print "A: ax, ay, az"
-    printMag(imu,mag);   // Print "M: mx, my, mz"
-    printAttitude(imu, acc, mag, euler);
-    Serial.println();
+    inputGyro(imu,gyro);  // Print "G: gx, gy, gz"
+    inputAccel(imu,acc); // Print "A: ax, ay, az"
+    inputMag(imu,mag);   // Print "M: mx, my, mz"
+    //printAttitude(imu, acc, mag, euler);
+    
+    kalmanfilter.update(gyro, acc, mag, dt);
+    kalmanfilter.filtered_euler(filtered_euler);
+    //filtered_eulerがカルマンフィルタを通したあとの値。
 
     lastPrint = millis(); // Update lastPrint time
   }
