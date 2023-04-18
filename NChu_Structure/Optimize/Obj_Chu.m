@@ -1,18 +1,27 @@
-function obj = testObj(x,vspvar,x0)
+function obj = testObj(x,FILE,vspvar,x0)
 
-disp(x);
+vspmach=vspvar(1);
+vspalpha=vspvar(2);
+vspbeta=vspvar(3);
 
-test_des_rewrite;
+des_rewrite(x,FILE);
 
-vspaero_Chu;
+vspaerotest(FILE);
+
+DATA = vspaero(strcat(FILE,"_DegenGeom"),'.',0,"Mach",vspmach,"AoA",vspalpha);
 
 CL=DATA.AERO(7)
 CDtot=DATA.AERO(10)
 
-%obj = CDtot;
-%+10000*(CL-0.5238)^2;
-obj = -CL/CDtot;
+obj = CDtot;
 
+%{
+if CL>0 & CDtot>0
+    obj = -CL^(2/3)/CDtot;
+else
+    obj=10000;
+end
+%}
 
 disp("obj:")
 disp(obj)
