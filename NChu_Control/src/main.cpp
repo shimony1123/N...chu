@@ -2,10 +2,17 @@
 #include <Wire.h>
 #include "SparkFunLSM9DS1.h"
 #include "KalmanFilter.hpp"
+#include "servo.hpp"
 
 #define PRINT_CALCULATED
 #define PRINT_SPEED 250
 #define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
+
+int channel = 0;
+int freq = 100; //周波数=1/周期
+int resolution = 65536; // 解像度
+int Pin = 16; // ピン番号
+int duty = 9830; // duty比×解像度
 
 LSM9DS1 imu;
 static unsigned long lastPrint;
@@ -42,6 +49,7 @@ void calib(){
 void setup(){
   Serial.begin(115200);
   Wire.begin();
+  sbus.begin();
 
   //成功判定
   if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire))
