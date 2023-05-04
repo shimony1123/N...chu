@@ -14,6 +14,12 @@ void KalmanFilter::update(Eigen::Vector3f gyro, Eigen::Vector3f acc, Eigen::Vect
 	     0, 1.0, 0, 0,
 		 0, 0, 1.0, 0,
 		 0, 0, 0, 1.0;
+		
+	B << 1.0, 0, 0, 0,
+	     0, 1.0, 0, 0,
+		 0, 0, 1.0, 0,
+		 0, 0, 0, 1.0;
+
 	float gain = 1.0;
 	R = gain*R;
 
@@ -24,12 +30,13 @@ void KalmanFilter::update(Eigen::Vector3f gyro, Eigen::Vector3f acc, Eigen::Vect
   	F = Jf(x,gyro)*dt;
   	P = F * P * F.transpose() + B * Q * B.transpose();
   	H = Jh(x);
-  	Eigen::MatrixXf G = P * H.transpose() * (H * P * H.transpose() + R).inverse();
+  	Eigen::MatrixXf G = Eigen::MatrixXf::Zero(4,6);
+	G = P * H.transpose() * (H * P * H.transpose() + R).inverse();
   	x += G * (y - h(x));
   	P -= G * H * P;
 	}
 
-Eigen::Vector4f KalmanFilter::get_x(Eigen::VectorXf euler){
+Eigen::Vector4f KalmanFilter::get_x(Eigen::Vector3f euler){
 	float phi, theta, psi;
 	float q0, q1, q2, q3;
 	phi = euler(0);
@@ -47,7 +54,7 @@ Eigen::Vector4f KalmanFilter::get_x(Eigen::VectorXf euler){
 
 Eigen::Vector4f KalmanFilter::f(Eigen::VectorXf x, Eigen::VectorXf gyro){
 	Eigen::Matrix4f a;
-	Eigen::MatrixXf omega(4,1);
+	Eigen::MatrixXf omega = Eigen::MatrixXf::Zero(4,1);
 	omega << 0,gyro(0),gyro(1),gyro(2);
 	a << x(3),-x(2),x(1),x(0),
 	     x(2),x(3),-x(0),x(1),
@@ -66,27 +73,36 @@ Eigen::VectorXf KalmanFilter::h(Eigen::VectorXf x){
 	q2 = x(2);
 	q3 = x(3);
 
-	//ここでのRは回転行列
-	Eigen::Matrix3f R;
-	// 対角成分
-	R(0, 0) = q0*q0 + q1*q1 - q2*q2 - q3*q3;
-	R(1, 1) = q0*q0 - q1*q1 + q2*q2 - q3*q3;
-	R(2, 2) = q0*q0 - q1*q1 - q2*q2 + q3*q3;
-	// 対角成分以外
-	R(0, 1) = 2.0f*(q1*q2 - q0*q3);
-	R(1, 0) = 2.0f*(q1*q2 + q0*q3);
-	R(0, 2) = 2.0f*(q1*q3 + q0*q2);
-	R(2, 0) = 2.0f*(q1*q3 - q0*q2);
-	R(2, 1) = 2.0f*(q2*q3 + q0*q1);
-	R(1, 2) = 2.0f*(q2*q3 - q0*q1);
-	Eigen::MatrixXf R_total = Eigen::MatrixXf::Zero(6,6);
-	R_total << R,0,
-	           0,R;
+	Eigen::MatrixXf rot = Eigen::MatrixXf::Zero(6,6);
+	rot(0, 0) = q0*q0 + q1*q1 - q2*q2 - q3*q3;
+	rot(1, 1) = q0*q0 - q1*q1 + q2*q2 - q3*q3;
+	rot(2, 2) = q0*q0 - q1*q1 - q2*q2 + q3*q3;
+	rot(0, 1) = 2.0f*(q1*q2 - q0*q3);
+	rot(1, 0) = 2.0f*(q1*q2 + q0*q3);
+	rot(0, 2) = 2.0f*(q1*q3 + q0*q2);
+	rot(2, 0) = 2.0f*(q1*q3 - q0*q2);
+	rot(2, 1) = 2.0f*(q2*q3 + q0*q1);
+	rot(1, 2) = 2.0f*(q2*q3 - q0*q1);
+
+	rot(3, 3) = q0*q0 + q1*q1 - q2*q2 - q3*q3;
+	rot(4, 4) = q0*q0 - q1*q1 + q2*q2 - q3*q3;
+	rot(5, 5) = q0*q0 - q1*q1 - q2*q2 + q3*q3;
+	rot(3, 4) = 2.0f*(q1*q2 - q0*q3);
+	rot(4, 3) = 2.0f*(q1*q2 + q0*q3);
+	rot(3, 5) = 2.0f*(q1*q3 + q0*q2);
+	rot(5, 3) = 2.0f*(q1*q3 - q0*q2);
+	rot(5, 4) = 2.0f*(q2*q3 + q0*q1);
+	rot(4, 5) = 2.0f*(q2*q3 - q0*q1);
 
 	Eigen::VectorXf earth = Eigen::VectorXf::Zero(6);
-	earth << 0, 0, g, mag_calib(0), mag_calib(1), mag_calib(2);
+	earth(0) = 0;
+	earth(1) = 0;
+	earth(2) = g;
+	earth(3) = mag_calib(0);
+	earth(4) = mag_calib(1);
+	earth(5) = mag_calib(2);
 
-	return R_total*earth;
+	return rot*earth;
 	//返り値は観測量で、[ax,ay,az,mx,my,mz]
 }
 
@@ -121,9 +137,12 @@ Eigen::MatrixXf KalmanFilter::Jh(Eigen::VectorXf x){
 	return H;
 }
 
-void KalmanFilter::filtered_euler(Eigen::Vector3f filtered_euler){
+void KalmanFilter::filtered_euler(){
 	float phi, theta, psi;
-	float q0, q1, q2, q3 = x(0), x(1), x(2), x(3);
+	float q0 = x(0);
+	float q1 = x(1);
+	float q2 = x(2);
+	float q3 = x(3);
 	phi = atan2(2.0f*(q0*q1+q2*q3), q0*q0-q1*q1-q2*q2+q3*q3);
 	theta = asin(2.0f*(q0*q2-q1*q3));
 	psi = atan2(2.0f*(q0*q3+q1*q2), q0*q0+q1*q1-q2*q2-q3*q3);
@@ -131,5 +150,13 @@ void KalmanFilter::filtered_euler(Eigen::Vector3f filtered_euler){
 	Serial.print("theta : "); Serial.println(theta);
 	Serial.print("psi : "); Serial.println(psi);
 
-	filtered_euler << phi,theta,psi;
+	f_euler(0)=phi;
+	f_euler(1)=theta;
+	f_euler(2)=psi;
+	Serial.print("f_roll = ");
+    Serial.println(f_euler(0));
+    Serial.print("f_pitch = ");
+    Serial.println(f_euler(1));
+    Serial.print("f_yaw = ");
+    Serial.println(f_euler(2));
 }

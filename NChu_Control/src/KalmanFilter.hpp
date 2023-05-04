@@ -3,6 +3,12 @@
 
 //拡張カルマンフィルタ
 struct KalmanFilter{
+	Eigen::Vector3f gyro;
+	Eigen::Vector3f acc;
+	Eigen::Vector3f mag;
+	Eigen::Vector3f euler;
+	Eigen::Vector3f f_euler;
+
 	// システムを表す変数
  	//Eigen::MatrixXf A;
  	Eigen::Matrix4f B;//4*4の単位行列
@@ -23,10 +29,10 @@ struct KalmanFilter{
 	const float g = 9.80665;
  	
  	void update(Eigen::Vector3f gyro, Eigen::Vector3f acc, Eigen::Vector3f mag, float dt);
- 	Eigen::Vector4f get_x(Eigen::VectorXf euler);
+ 	Eigen::Vector4f get_x(Eigen::Vector3f euler);
  	Eigen::Vector4f f(Eigen::VectorXf x, Eigen::VectorXf euler); // 状態方程式のf。クォータニオンの時間微分を返す。
  	Eigen::VectorXf h(Eigen::VectorXf x); // 観測方程式のh
  	Eigen::Matrix4f Jf(Eigen::VectorXf x, Eigen::VectorXf gyro); // fのJacobian
  	Eigen::MatrixXf Jh(Eigen::VectorXf x); // hのJacobian
-	void filtered_euler(Eigen::Vector3f filtered_euler);
+	void filtered_euler();
  };

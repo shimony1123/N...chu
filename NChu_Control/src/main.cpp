@@ -10,12 +10,7 @@
 LSM9DS1 imu;
 static unsigned long lastPrint;
 float dt; //刻み幅
-Eigen::Vector3f gyro;
-Eigen::Vector3f acc;
-Eigen::Vector3f mag;
-//Eigen::Vector3f euler;
 Eigen::MatrixXf P_ini = Eigen::MatrixXf::Zero(4, 4); //Pの初期値
-Eigen::Vector3f filtered_euler;
 
 KalmanFilter kalmanfilter;
 
@@ -40,6 +35,8 @@ void calib(){
 
   //状態量x(クォータニオン)の初期化
   kalmanfilter.x << 1.0, 0, 0, 0; //オイラー角が全て0[deg]に対応
+
+  dt = 0.01;
 }
 
 void setup(){
@@ -74,14 +71,11 @@ void loop(){
   }
 
   if ((lastPrint + PRINT_SPEED) < millis()){
-    inputGyro(imu,gyro);  // Print "G: gx, gy, gz"
-    inputAccel(imu,acc); // Print "A: ax, ay, az"
-    inputMag(imu,mag);   // Print "M: mx, my, mz"
-    //printAttitude(imu, acc, mag, euler);
+    printAttitude(imu, kalmanfilter.acc, kalmanfilter.mag, kalmanfilter.euler);
     
-    kalmanfilter.update(gyro, acc, mag, dt);
-    kalmanfilter.filtered_euler(filtered_euler);
-    //filtered_eulerがカルマンフィルタを通したあとの値。
+    // kalmanfilter.update(kalmanfilter.gyro, kalmanfilter.acc, kalmanfilter.mag, dt);
+    // kalmanfilter.filtered_euler();
+    // //filtered_eulerがカルマンフィルタを通したあとの値。
 
     lastPrint = millis(); // Update lastPrint time
   }
