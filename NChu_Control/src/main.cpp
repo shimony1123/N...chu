@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <sbus.h>
 #include "SparkFunLSM9DS1.h"
 #include "KalmanFilter.hpp"
 #include "servo.hpp"
@@ -7,19 +8,28 @@
 #define PRINT_CALCULATED
 #define PRINT_SPEED 250
 #define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
+#define RX_PIN 14
 
-int channel = 0;
-int freq = 100; //周波数=1/周期
-int resolution = 65536; // 解像度
-int Pin = 16; // ピン番号
-int duty = 9830; // duty比×解像度
+bfs::SbusRx sbus(&Serial1,RX_PIN,-1,true);//Sbusで送信することはないので、TXピン番号は-1としている。
+bfs::SbusData data;
 
-LSM9DS1 imu;
+//↓お試し
+int channel_in = 0;
+int freq_in = 100; //周波数=1/周期
+int resolution_in = 65536; // 解像度
+int Pin_in_left = 16; //左ピン番号
+int Pin_in_right = 17; //右ピン番号
+float duty_ratio_in = 0.08; // duty比×解像度
+int channel_size = 2;
+
 static unsigned long lastPrint;
 float dt; //刻み幅
 Eigen::MatrixXf P_ini = Eigen::MatrixXf::Zero(4, 4); //Pの初期値
 
 KalmanFilter kalmanfilter;
+LSM9DS1 imu;
+servo servo_left(1, freq_in, resolution_in, Pin_in_left, duty_ratio_in);
+servo servo_right(2, freq_in, resolution_in, Pin_in_right, duty_ratio_in);
 
 void inputGyro(LSM9DS1 &imu, Eigen::VectorXf gyro); //gyroの値を更新
 void inputAccel(LSM9DS1 &imu, Eigen::VectorXf acc); //加速度の値を更新
@@ -49,7 +59,8 @@ void calib(){
 void setup(){
   Serial.begin(115200);
   Wire.begin();
-  sbus.begin();
+  sbus.Begin();
+  //なんでWireとsbusで大文字小文字のルールが違うんだ！！
 
   //成功判定
   if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire))
@@ -88,6 +99,18 @@ void loop(){
     lastPrint = millis(); // Update lastPrint time
   }
 
-  //カルマンフィルタ部分
+  //servo部分
 
+  //sbus部分
+  if (sbus.Read()){
+    data = sbus.data();//データを読み込む
+    for (int i=0; i<channel_size; i++){
+      //各チャネルに対応する値を表示
+      Serial.print("ch");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(data.ch[i]);
+      Serial.print(i==4 ? "\n" : " ");
+    }
+  }
 }
