@@ -14,8 +14,8 @@ servo::servo(uint8_t channel_in, int freq_in, uint8_t bit_num_in, int Pin_in, fl
     resolution = pow(2,bit_num_in);
     duty = duty_ratio_in*resolution;
 
-    // ledcSetup(channel,freq,resolution);
-    // ledcAttachPin(Pin,channel);
+    ledcSetup(channel,freq,bit_num);
+    ledcAttachPin(Pin,channel);
 }
 
 float servo::calculate_duty_ratio(int power, float duty_ratio_max, float duty_ratio_min){

@@ -19,7 +19,7 @@ int freq_in = 100; //周波数=1/周期
 uint8_t bit_num_in = 16; // 解像度
 int Pin_in_left = 16; //左ピン番号
 int Pin_in_right = 17; //右ピン番号
-float duty_ratio_in = 0.08; // duty比×解像度
+float duty_ratio_in = 0.19; // duty比×解像度
 int channel_size = 2;
 static unsigned long lastPrint;
 float dt; //刻み幅
@@ -62,8 +62,6 @@ void setup(){
   Wire.begin();
   sbus.Begin();
   //なんでWireとsbusで大文字小文字のルールが違うんだ！！
-  ledcSetup(servo_left.channel,servo_left.freq,servo_left.bit_num);
-  ledcAttachPin(servo_left.Pin,servo_left.channel);
 
   //成功判定
   if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire))
@@ -117,6 +115,4 @@ void loop(){
       Serial.print(i==4 ? "\n" : " ");
     }
   }
-  Serial.print("servo_left.duty:");
-  Serial.println(servo_left.duty);
 }

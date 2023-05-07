@@ -4,13 +4,13 @@
 struct servo{
     uint8_t channel;
     int freq;//周波数=1/周期
-    uint8_t bit_num;//解像度。今回は65536。
+    uint8_t bit_num;//resolutionが2の何乗か
     int Pin;//ピン番号
-    float duty_ratio;//PWM生成時に引数とするのはduty = duty_ratio*resolution(すなわちHIGHにするカウントの最大値)であることに留意。
+    float duty_ratio;//duty比
     float duty_ratio_max;
     float duty_ratio_min;
-    int duty;
-    int resolution;
+    int duty;//解像度×duty比。PWM生成時に引数とするのはこれ。
+    int resolution;//解像度
 
     //constructor
     servo(uint8_t channel_in, int freq_in, uint8_t bit_num_in, int Pin_in, float duty_ratio_in);
