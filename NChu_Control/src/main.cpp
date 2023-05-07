@@ -14,22 +14,23 @@ bfs::SbusRx sbus(&Serial1,RX_PIN,-1,true);//Sbusで送信することはない�
 bfs::SbusData data;
 
 //↓お試し
-int channel_in = 0;
+uint8_t channel_in = 1;
 int freq_in = 100; //周波数=1/周期
-int resolution_in = 65536; // 解像度
+uint8_t bit_num_in = 16; // 解像度
 int Pin_in_left = 16; //左ピン番号
 int Pin_in_right = 17; //右ピン番号
 float duty_ratio_in = 0.08; // duty比×解像度
 int channel_size = 2;
-
 static unsigned long lastPrint;
 float dt; //刻み幅
+float power_left;
+float power_right;
 Eigen::MatrixXf P_ini = Eigen::MatrixXf::Zero(4, 4); //Pの初期値
 
 KalmanFilter kalmanfilter;
 LSM9DS1 imu;
-servo servo_left(1, freq_in, resolution_in, Pin_in_left, duty_ratio_in);
-servo servo_right(2, freq_in, resolution_in, Pin_in_right, duty_ratio_in);
+servo servo_left(0, freq_in, bit_num_in, Pin_in_left, duty_ratio_in);
+servo servo_right(1, freq_in, bit_num_in, Pin_in_right, duty_ratio_in);
 
 void inputGyro(LSM9DS1 &imu, Eigen::VectorXf gyro); //gyroの値を更新
 void inputAccel(LSM9DS1 &imu, Eigen::VectorXf acc); //加速度の値を更新
@@ -61,6 +62,8 @@ void setup(){
   Wire.begin();
   sbus.Begin();
   //なんでWireとsbusで大文字小文字のルールが違うんだ！！
+  ledcSetup(servo_left.channel,servo_left.freq,servo_left.bit_num);
+  ledcAttachPin(servo_left.Pin,servo_left.channel);
 
   //成功判定
   if(!imu.begin(LSM9DS1_AG_ADDR(1), LSM9DS1_M_ADDR(1), Wire))
@@ -100,6 +103,7 @@ void loop(){
   }
 
   //servo部分
+  ledcWrite(servo_left.channel,servo_left.duty);
 
   //sbus部分
   if (sbus.Read()){
@@ -113,4 +117,6 @@ void loop(){
       Serial.print(i==4 ? "\n" : " ");
     }
   }
+  Serial.print("servo_left.duty:");
+  Serial.println(servo_left.duty);
 }
