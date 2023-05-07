@@ -8,19 +8,21 @@
 #define PRINT_CALCULATED
 #define PRINT_SPEED 250
 #define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
-#define RX_PIN 14
+#define RX_PIN 16
 
+//HardwareSerial Serial1(0);
 bfs::SbusRx sbus(&Serial1,RX_PIN,-1,true);//Sbusで送信することはないので、TXピン番号は-1としている。
 bfs::SbusData data;
 
-//↓お試し
-uint8_t channel_in = 1;
+//コンストラクタで代入する値
+uint8_t channel_aileron_in = 0;
+uint8_t channel_elevator_in = 2;
 int freq_in = 100; //周波数=1/周期
 uint8_t bit_num_in = 16; // 解像度
-int Pin_in_left = 16; //左ピン番号
-int Pin_in_right = 17; //右ピン番号
-float duty_ratio_in = 0.19; // duty比×解像度
-int channel_size = 2;
+int Pin_in_aileron = 15; //左ピン番号
+int Pin_in_elevator = 17; //右ピン番号
+float duty_ratio_aileron_in = 0.11; // duty比×解像度
+float duty_ratio_elevator_in = 0.19;
 static unsigned long lastPrint;
 float dt; //刻み幅
 float power_left;
@@ -29,8 +31,8 @@ Eigen::MatrixXf P_ini = Eigen::MatrixXf::Zero(4, 4); //Pの初期値
 
 KalmanFilter kalmanfilter;
 LSM9DS1 imu;
-servo servo_left(0, freq_in, bit_num_in, Pin_in_left, duty_ratio_in);
-servo servo_right(1, freq_in, bit_num_in, Pin_in_right, duty_ratio_in);
+servo servo_aileron(channel_aileron_in, freq_in, bit_num_in, Pin_in_aileron, duty_ratio_aileron_in);
+servo servo_elevator(channel_elevator_in, freq_in, bit_num_in, Pin_in_elevator, duty_ratio_elevator_in);
 
 void inputGyro(LSM9DS1 &imu, Eigen::VectorXf gyro); //gyroの値を更新
 void inputAccel(LSM9DS1 &imu, Eigen::VectorXf acc); //加速度の値を更新
@@ -72,47 +74,49 @@ void setup(){
   {
     Serial.println("Succeeded to communicate with LSM9DS1.");
     //成功したらcalibration
-    //calib();
+    calib();
   }
 }
 
 void loop(){
-  //PModでデータを得るところ
-  if (imu.gyroAvailable()){
-    imu.readGyro();
-  }
+  // //PModでデータを得るところ
+  // if (imu.gyroAvailable()){
+  //   imu.readGyro();
+  // }
 
-  if ( imu.accelAvailable() ){
-    imu.readAccel();
-  }
+  // if ( imu.accelAvailable() ){
+  //   imu.readAccel();
+  // }
 
-  if ( imu.magAvailable() ){
-    imu.readMag();
-  }
+  // if ( imu.magAvailable() ){
+  //   imu.readMag();
+  // }
 
-  if ((lastPrint + PRINT_SPEED) < millis()){
-    printAttitude(imu, kalmanfilter.acc, kalmanfilter.mag, kalmanfilter.euler);
+  // if ((lastPrint + PRINT_SPEED) < millis()){
+  //   printAttitude(imu, kalmanfilter.acc, kalmanfilter.mag, kalmanfilter.euler);
     
-    // kalmanfilter.update(kalmanfilter.gyro, kalmanfilter.acc, kalmanfilter.mag, dt);
-    // kalmanfilter.filtered_euler();
-    // //filtered_eulerがカルマンフィルタを通したあとの値。
+  //   // kalmanfilter.update(kalmanfilter.gyro, kalmanfilter.acc, kalmanfilter.mag, dt);
+  //   // kalmanfilter.filtered_euler();
+  //   // //filtered_eulerがカルマンフィルタを通したあとの値。
 
-    lastPrint = millis(); // Update lastPrint time
-  }
+  //   lastPrint = millis(); // Update lastPrint time
+  // }
 
   //servo部分
-  ledcWrite(servo_left.channel,servo_left.duty);
+  ledcWrite(servo_aileron.channel,servo_aileron.duty);
+  ledcWrite(servo_elevator.channel,servo_elevator.duty);
 
   //sbus部分
   if (sbus.Read()){
     data = sbus.data();//データを読み込む
-    for (int i=0; i<channel_size; i++){
+    for (int i=1; i<10; i++){
       //各チャネルに対応する値を表示
       Serial.print("ch");
       Serial.print(i);
       Serial.print(": ");
       Serial.print(data.ch[i]);
-      Serial.print(i==4 ? "\n" : " ");
+      Serial.println(i==10? "\n" : " ");
     }
   }
+  delay(1000);
 }
