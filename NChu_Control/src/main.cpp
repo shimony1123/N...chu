@@ -14,7 +14,7 @@
 bfs::SbusRx sbus(&Serial1,RX_PIN,-1,true);//Sbusで送信することはないので、TXピン番号は-1としている。
 bfs::SbusData data;
 
-//コンストラクタで代入する値
+//コンストラクタで代入する値(servo関連)
 uint8_t channel_aileron_in = 0;
 uint8_t channel_elevator_in = 2;
 int freq_in = 100; //周波数=1/周期
@@ -23,22 +23,28 @@ int Pin_in_aileron = 15; //左ピン番号
 int Pin_in_elevator = 17; //右ピン番号
 float duty_ratio_aileron_in = 0.11; // duty比×解像度。ここにroll_controlを代入。
 float duty_ratio_elevator_in = 0.19; //ここにpitch_controlを代入。
+
 static unsigned long lastPrint;
 float dt; //刻み幅
 float power_left;
 float power_right;
 Eigen::MatrixXf P_ini = Eigen::MatrixXf::Zero(4, 4); //Pの初期値
 
+//instance
 KalmanFilter kalmanfilter;
 LSM9DS1 imu;
 servo servo_aileron(channel_aileron_in, freq_in, bit_num_in, Pin_in_aileron, duty_ratio_aileron_in);
 servo servo_elevator(channel_elevator_in, freq_in, bit_num_in, Pin_in_elevator, duty_ratio_elevator_in);
 
-void inputGyro(LSM9DS1 &imu, Eigen::Vector3f &gyro); //gyroの値を更新
-void inputAccel(LSM9DS1 &imu, Eigen::Vector3f &acc); //加速度の値を更新
-void inputMag(LSM9DS1 &imu, Eigen::Vector3f &mag); //地磁気の値を更新
-void printAttitude(LSM9DS1 &imu, Eigen::Vector3f &acc, Eigen::Vector3f &mag, Eigen::Vector3f &euler); //オイラー角の値を更新
+//前方宣言
+void inputGyro(LSM9DS1 &imu, Eigen::Vector3f &gyro); //ジャイロの値を引数のベクトルに代入
+void inputAccel(LSM9DS1 &imu, Eigen::Vector3f &acc); //加速度の値を引数のベクトルに代入
+void inputMag(LSM9DS1 &imu, Eigen::Vector3f &mag); //地磁気の値を引数のベクトルに代入
+void attitude(LSM9DS1 &imu, Eigen::Vector3f &acc, Eigen::Vector3f &mag, Eigen::Vector3f &euler);
+//attitude()は引数のeulerにrawデータのオイラー角を代入する。
+float P_control(Eigen::Vector3f euler,float channel1,float channel2);
 
+//calibration関数。setup()で一度だけ呼ばれる。
 void calib(){
   //地磁気calibration
   if (imu.magAvailable()){
@@ -94,18 +100,24 @@ void loop(){
 
   if ((lastPrint + PRINT_SPEED) < millis()){
     inputGyro(imu,kalmanfilter.gyro);
-    printAttitude(imu, kalmanfilter.acc, kalmanfilter.mag, kalmanfilter.euler);
+    inputAccel(imu,kalmanfilter.acc);
+    inputMag(imu,kalmanfilter.mag);
+    attitude(imu, kalmanfilter.acc, kalmanfilter.mag, kalmanfilter.euler);
     
+    //カルマンフィルタをここで通す。
     kalmanfilter.update(kalmanfilter.gyro, kalmanfilter.acc, kalmanfilter.mag, dt);
     kalmanfilter.filtered_euler();
-    // //filtered_eulerがカルマンフィルタを通したあとの値。
+
+    // フィルタリング済みのオイラー角をここでprint。
+    Serial.print("filtered_roll = ");
+    Serial.println(kalmanfilter.f_euler(0));
+    Serial.print("filtered_pitch = ");
+    Serial.println(kalmanfilter.f_euler(1));
+    Serial.print("filtered_yaw = ");
+    Serial.println(kalmanfilter.f_euler(2));
 
     lastPrint = millis(); // Update lastPrint time
   }
-
-  // //servo部分
-  // ledcWrite(servo_aileron.channel,servo_aileron.duty);
-  // ledcWrite(servo_elevator.channel,servo_elevator.duty);
 
   // //sbus部分
   // if (sbus.Read()){
@@ -118,6 +130,14 @@ void loop(){
   //     Serial.print(data.ch[i]);
   //     Serial.print(i==2? "\n" : " ");
   //     //maxは1680,minは368。0が1011。
+  //     //ch0がroll,ch1がpitch,ch2がスロットル
   //   }
   // }
+
+  // //servo部分
+  // ledcWrite(servo_aileron.channel,servo_aileron.duty);
+  // ledcWrite(servo_elevator.channel,servo_elevator.duty);
+
+  // 制御の部分
+  
 }

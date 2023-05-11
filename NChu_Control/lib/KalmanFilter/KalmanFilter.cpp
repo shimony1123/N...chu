@@ -22,8 +22,8 @@ void KalmanFilter::update(Eigen::Vector3f gyro, Eigen::Vector3f acc, Eigen::Vect
 		 0, 0, 1.0, 0,
 		 0, 0, 0, 1.0;
 
-	float gain = 1.0;
-	R = gain*R;
+	float R_gain = 1.0;
+	R = R_gain*R;
 
 	Eigen::VectorXf y = Eigen::VectorXf::Zero(6);
 	y << acc(0),acc(1),acc(2),mag(0),mag(1),mag(2);
@@ -151,13 +151,7 @@ void KalmanFilter::filtered_euler(){
 	Serial.print("theta : "); Serial.println(theta);
 	Serial.print("psi : "); Serial.println(psi);
 
-	f_euler(0)=phi;
-	f_euler(1)=theta;
-	f_euler(2)=psi;
-	Serial.print("f_roll = ");
-    Serial.println(f_euler(0));
-    Serial.print("f_pitch = ");
-    Serial.println(f_euler(1));
-    Serial.print("f_yaw = ");
-    Serial.println(f_euler(2));
+	f_euler(0) = phi * 180/PI;
+	f_euler(1) = theta * 180/PI;
+	f_euler(2) = psi * 180/PI;
 }

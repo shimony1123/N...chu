@@ -7,8 +7,6 @@
 #define PRINT_SPEED 250
 #define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
 
-//static unsigned long lastPrint;
-
 void inputGyro(LSM9DS1 &imu, Eigen::Vector3f &gyro){
   gyro(0) = imu.calcGyro(imu.gx);
   gyro(1) = imu.calcGyro(imu.gy);
@@ -32,7 +30,7 @@ void inputGyro(LSM9DS1 &imu, Eigen::Vector3f &gyro){
 // #endif
 }
 
-void inputAccel(LSM9DS1 &imu, Eigen::Vector3f acc){
+void inputAccel(LSM9DS1 &imu, Eigen::Vector3f &acc){
   acc(0) = imu.calcAccel(imu.ax);
   acc(1) = imu.calcAccel(imu.ay);
   acc(2) = imu.calcAccel(imu.az);
@@ -55,59 +53,30 @@ void inputAccel(LSM9DS1 &imu, Eigen::Vector3f acc){
 // #endif
 }
 
-void inputMag(LSM9DS1 &imu, Eigen::Vector3f mag){
+void inputMag(LSM9DS1 &imu, Eigen::Vector3f &mag){
   mag(0) = imu.calcMag(imu.mx);
   mag(1) = imu.calcMag(imu.my);
   mag(2) = imu.calcMag(imu.mz);
   Serial.println("mag's input succeeded");
 
-  Serial.print("M: ");
-  #ifdef PRINT_CALCULATED
-  Serial.print(mag(0), 2);
-  Serial.print(", ");
-  Serial.print(mag(1), 2);
-  Serial.print(", ");
-  Serial.print(mag(2), 2);
-  Serial.println(" gauss");
-  #elif defined PRINT_RAW
-  Serial.print(imu.mx);
-  Serial.print(", ");
-  Serial.print(imu.my);
-  Serial.print(", ");
-  Serial.println(imu.mz);
-  #endif
+  // Serial.print("M: ");
+  // #ifdef PRINT_CALCULATED
+  // Serial.print(mag(0), 2);
+  // Serial.print(", ");
+  // Serial.print(mag(1), 2);
+  // Serial.print(", ");
+  // Serial.print(mag(2), 2);
+  // Serial.println(" gauss");
+  // #elif defined PRINT_RAW
+  // Serial.print(imu.mx);
+  // Serial.print(", ");
+  // Serial.print(imu.my);
+  // Serial.print(", ");
+  // Serial.println(imu.mz);
+  // #endif
 }
 
-void printAttitude(LSM9DS1 &imu, Eigen::Vector3f &acc, Eigen::Vector3f &mag, Eigen::Vector3f &euler){
-  //inputAccel
-  acc(0) = imu.calcAccel(imu.ax);
-  acc(1) = imu.calcAccel(imu.ay);
-  acc(2) = imu.calcAccel(imu.az);
-  Serial.println("acc's input succeeded");
-
-  //inputMag
-  mag(0) = imu.calcMag(imu.mx);
-  mag(1) = imu.calcMag(imu.my);
-  mag(2) = imu.calcMag(imu.mz);
-  Serial.println("mag's input succeeded");
-  Serial.print("M: ");
-  #ifdef PRINT_CALCULATED
-  Serial.print(mag(0), 2);
-  Serial.print(", ");
-  Serial.print(mag(1), 2);
-  Serial.print(", ");
-  Serial.print(mag(2), 2);
-  Serial.println(" gauss");
-  #elif defined PRINT_RAW
-  Serial.print(imu.mx);
-  Serial.print(", ");
-  Serial.print(imu.my);
-  Serial.print(", ");
-  Serial.println(imu.mz);
-  #endif
-
-
-  Serial.println(mag(1));
+void attitude(LSM9DS1 &imu, Eigen::Vector3f &acc, Eigen::Vector3f &mag, Eigen::Vector3f &euler){
   euler(0) = atan2(acc(1), acc(2)); //roll
   euler(1) = atan2(-acc(0), sqrt(acc(1) * acc(1) + acc(2) * acc(2))); //pitch
 
