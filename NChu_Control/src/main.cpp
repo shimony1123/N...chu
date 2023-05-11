@@ -21,8 +21,8 @@ int freq_in = 100; //周波数=1/周期
 uint8_t bit_num_in = 16; // 解像度
 int Pin_in_aileron = 15; //左ピン番号
 int Pin_in_elevator = 17; //右ピン番号
-float duty_ratio_aileron_in = 0.11; // duty比×解像度
-float duty_ratio_elevator_in = 0.19;
+float duty_ratio_aileron_in = 0.11; // duty比×解像度。ここにroll_controlを代入。
+float duty_ratio_elevator_in = 0.19; //ここにpitch_controlを代入。
 static unsigned long lastPrint;
 float dt; //刻み幅
 float power_left;
@@ -109,14 +109,14 @@ void loop(){
   //sbus部分
   if (sbus.Read()){
     data = sbus.data();//データを読み込む
-    for (int i=1; i<10; i++){
+    for (int i=0; i<3; i++){
       //各チャネルに対応する値を表示
       Serial.print("ch");
       Serial.print(i);
       Serial.print(": ");
       Serial.print(data.ch[i]);
-      Serial.println(i==10? "\n" : " ");
+      Serial.print(i==2? "\n" : " ");
+      //maxは1680,minは368。0が1011。
     }
   }
-  delay(1000);
 }
