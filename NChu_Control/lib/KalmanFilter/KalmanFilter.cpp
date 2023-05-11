@@ -10,10 +10,12 @@ void KalmanFilter::update(Eigen::Vector3f gyro, Eigen::Vector3f acc, Eigen::Vect
 		 0, 0, 1.0, 0,
 		 0, 0, 0, 1.0;
 
-	R << 1.0, 0, 0, 0,
-	     0, 1.0, 0, 0,
-		 0, 0, 1.0, 0,
-		 0, 0, 0, 1.0;
+	R << 1.0, 0, 0, 0, 0, 0,
+	     0, 1.0, 0, 0, 0, 0,
+		 0, 0, 1.0, 0, 0, 0,
+		 0, 0, 0, 1.0, 0, 0,
+		 0, 0, 0, 0, 1.0, 0,
+		 0, 0, 0, 0, 0, 1.0;
 		
 	B << 1.0, 0, 0, 0,
 	     0, 1.0, 0, 0,
@@ -27,6 +29,7 @@ void KalmanFilter::update(Eigen::Vector3f gyro, Eigen::Vector3f acc, Eigen::Vect
 	y << acc(0),acc(1),acc(2),mag(0),mag(1),mag(2);
 
 	x += f(x,gyro)*dt;
+	Serial.print(x(0));Serial.println(x(1));
   	F = Jf(x,gyro)*dt;
   	P = F * P * F.transpose() + B * Q * B.transpose();
   	H = Jh(x);
@@ -36,33 +39,31 @@ void KalmanFilter::update(Eigen::Vector3f gyro, Eigen::Vector3f acc, Eigen::Vect
   	P -= G * H * P;
 	}
 
-Eigen::Vector4f KalmanFilter::get_x(Eigen::Vector3f euler){
-	float phi, theta, psi;
-	float q0, q1, q2, q3;
-	phi = euler(0);
-	theta = euler(1);
-	psi = euler(2);
+// Eigen::Vector4f KalmanFilter::get_x(Eigen::Vector3f euler){
+// 	float phi, theta, psi;
+// 	float q0, q1, q2, q3;
+// 	phi = euler(0);
+// 	theta = euler(1);
+// 	psi = euler(2);
 
-	q0 = cos(phi/2.0f)*cos(theta/2.0f)*cos(psi/2.0f)+sin(phi/2.0f)*sin(theta/2.0f)*sin(psi/2.0f);
-	q1 = sin(phi/2.0f)*cos(theta/2.0f)*cos(psi/2.0f)-cos(phi/2.0f)*sin(theta/2.0f)*sin(psi/2.0f);
-	q2 = cos(phi/2.0f)*sin(theta/2.0f)*cos(psi/2.0f)+sin(phi/2.0f)*cos(theta/2.0f)*sin(psi/2.0f);
-	q3 = cos(phi/2.0f)*cos(theta/2.0f)*sin(psi/2.0f)-sin(phi/2.0f)*sin(theta/2.0f)*cos(psi/2.0f);
+// 	q0 = cos(phi/2.0f)*cos(theta/2.0f)*cos(psi/2.0f)+sin(phi/2.0f)*sin(theta/2.0f)*sin(psi/2.0f);
+// 	q1 = sin(phi/2.0f)*cos(theta/2.0f)*cos(psi/2.0f)-cos(phi/2.0f)*sin(theta/2.0f)*sin(psi/2.0f);
+// 	q2 = cos(phi/2.0f)*sin(theta/2.0f)*cos(psi/2.0f)+sin(phi/2.0f)*cos(theta/2.0f)*sin(psi/2.0f);
+// 	q3 = cos(phi/2.0f)*cos(theta/2.0f)*sin(psi/2.0f)-sin(phi/2.0f)*sin(theta/2.0f)*cos(psi/2.0f);
 
-	x << q0,q1,q2,q3;
-	return x;
-}
+// 	x << q0,q1,q2,q3;
+// 	return x;
+// }
 
 Eigen::Vector4f KalmanFilter::f(Eigen::VectorXf x, Eigen::VectorXf gyro){
-	Eigen::Matrix4f a;
-	Eigen::MatrixXf omega = Eigen::MatrixXf::Zero(4,1);
+	Eigen::Vector4f omega;
 	omega << 0,gyro(0),gyro(1),gyro(2);
-	a << x(3),-x(2),x(1),x(0),
-	     x(2),x(3),-x(0),x(1),
-		 -x(1),x(0),x(3),x(2),
-		 -x(0),-x(1),-x(2),x(3);
-
-	Eigen::VectorXf xdot;
-	xdot = 1.0/2*a*omega;//xdotがクォータニオンの微分
+	Eigen::Vector4f xdot;
+	xdot(0) = 1.0/2*(x(0)*omega(0) - x(1)*omega(1) - x(2)*omega(2) - x(3)*omega(3));
+	xdot(1) = 1.0/2*(x(0)*omega(1) + x(1)*omega(0) + x(2)*omega(3) - x(3)*omega(2));
+	xdot(2) = 1.0/2*(x(0)*omega(2) - x(1)*omega(3) + x(2)*omega(0) + x(3)*omega(1));
+	xdot(3) = 1.0/2*(x(0)*omega(3) + x(1)*omega(2) - x(2)*omega(1) + x(3)*omega(0));
+	Serial.print("gyro(0)=");Serial.println(gyro(0));
 	return xdot;
 }
 
@@ -108,10 +109,10 @@ Eigen::VectorXf KalmanFilter::h(Eigen::VectorXf x){
 
 Eigen::Matrix4f KalmanFilter::Jf(Eigen::VectorXf x, Eigen::VectorXf gyro){
 	Eigen::Matrix4f F; //Fはf(x)のJacobian
-	F << gyro(3),gyro(2),-gyro(1),0,
-	     -gyro(2),gyro(3),0,gyro(1),
-		 gyro(1),0,gyro(3),gyro(2),
-		 0,-gyro(1),-gyro(2),gyro(3);
+	F << gyro(2),gyro(1),-gyro(0),0,
+	     -gyro(1),gyro(2),0,gyro(0),
+		 gyro(0),0,gyro(2),gyro(1),
+		 0,-gyro(0),-gyro(1),gyro(2);
 
 	return F;
 }

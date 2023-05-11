@@ -9,7 +9,7 @@
 
 //static unsigned long lastPrint;
 
-void inputGyro(LSM9DS1 &imu, Eigen::VectorXf gyro){
+void inputGyro(LSM9DS1 &imu, Eigen::Vector3f &gyro){
   gyro(0) = imu.calcGyro(imu.gx);
   gyro(1) = imu.calcGyro(imu.gy);
   gyro(2) = imu.calcGyro(imu.gz);
@@ -32,7 +32,7 @@ void inputGyro(LSM9DS1 &imu, Eigen::VectorXf gyro){
 // #endif
 }
 
-void inputAccel(LSM9DS1 &imu, Eigen::VectorXf acc){
+void inputAccel(LSM9DS1 &imu, Eigen::Vector3f acc){
   acc(0) = imu.calcAccel(imu.ax);
   acc(1) = imu.calcAccel(imu.ay);
   acc(2) = imu.calcAccel(imu.az);
@@ -55,7 +55,7 @@ void inputAccel(LSM9DS1 &imu, Eigen::VectorXf acc){
 // #endif
 }
 
-void inputMag(LSM9DS1 &imu, Eigen::VectorXf mag){
+void inputMag(LSM9DS1 &imu, Eigen::Vector3f mag){
   mag(0) = imu.calcMag(imu.mx);
   mag(1) = imu.calcMag(imu.my);
   mag(2) = imu.calcMag(imu.mz);
@@ -78,7 +78,7 @@ void inputMag(LSM9DS1 &imu, Eigen::VectorXf mag){
   #endif
 }
 
-void printAttitude(LSM9DS1 &imu, Eigen::VectorXf acc, Eigen::VectorXf mag, Eigen::VectorXf euler){
+void printAttitude(LSM9DS1 &imu, Eigen::Vector3f &acc, Eigen::Vector3f &mag, Eigen::Vector3f &euler){
   //inputAccel
   acc(0) = imu.calcAccel(imu.ax);
   acc(1) = imu.calcAccel(imu.ay);
@@ -132,9 +132,9 @@ void printAttitude(LSM9DS1 &imu, Eigen::VectorXf acc, Eigen::VectorXf mag, Eigen
   euler(1) *= 180.0 / PI;
   euler(2) *= 180.0 / PI;
 
-  Serial.print("Roll, Pitch: ");
-  Serial.print(euler(0), 2);
-  Serial.print(", ");
-  Serial.println(euler(1), 2);
-  Serial.print("Yaw: "); Serial.println(euler(2), 2);
+  // Serial.print("Roll, Pitch: ");
+  // Serial.print(euler(0), 2);
+  // Serial.print(", ");
+  // Serial.println(euler(1), 2);
+  // Serial.print("Yaw: "); Serial.println(euler(2), 2);
 }

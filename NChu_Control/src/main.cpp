@@ -34,10 +34,10 @@ LSM9DS1 imu;
 servo servo_aileron(channel_aileron_in, freq_in, bit_num_in, Pin_in_aileron, duty_ratio_aileron_in);
 servo servo_elevator(channel_elevator_in, freq_in, bit_num_in, Pin_in_elevator, duty_ratio_elevator_in);
 
-void inputGyro(LSM9DS1 &imu, Eigen::VectorXf gyro); //gyroの値を更新
-void inputAccel(LSM9DS1 &imu, Eigen::VectorXf acc); //加速度の値を更新
-void inputMag(LSM9DS1 &imu, Eigen::VectorXf mag); //地磁気の値を更新
-void printAttitude(LSM9DS1 &imu, Eigen::VectorXf acc, Eigen::VectorXf mag, Eigen::VectorXf euler); //オイラー角の値を更新
+void inputGyro(LSM9DS1 &imu, Eigen::Vector3f &gyro); //gyroの値を更新
+void inputAccel(LSM9DS1 &imu, Eigen::Vector3f &acc); //加速度の値を更新
+void inputMag(LSM9DS1 &imu, Eigen::Vector3f &mag); //地磁気の値を更新
+void printAttitude(LSM9DS1 &imu, Eigen::Vector3f &acc, Eigen::Vector3f &mag, Eigen::Vector3f &euler); //オイラー角の値を更新
 
 void calib(){
   //地磁気calibration
@@ -79,44 +79,45 @@ void setup(){
 }
 
 void loop(){
-  // //PModでデータを得るところ
-  // if (imu.gyroAvailable()){
-  //   imu.readGyro();
-  // }
-
-  // if ( imu.accelAvailable() ){
-  //   imu.readAccel();
-  // }
-
-  // if ( imu.magAvailable() ){
-  //   imu.readMag();
-  // }
-
-  // if ((lastPrint + PRINT_SPEED) < millis()){
-  //   printAttitude(imu, kalmanfilter.acc, kalmanfilter.mag, kalmanfilter.euler);
-    
-  //   // kalmanfilter.update(kalmanfilter.gyro, kalmanfilter.acc, kalmanfilter.mag, dt);
-  //   // kalmanfilter.filtered_euler();
-  //   // //filtered_eulerがカルマンフィルタを通したあとの値。
-
-  //   lastPrint = millis(); // Update lastPrint time
-  // }
-
-  //servo部分
-  ledcWrite(servo_aileron.channel,servo_aileron.duty);
-  ledcWrite(servo_elevator.channel,servo_elevator.duty);
-
-  //sbus部分
-  if (sbus.Read()){
-    data = sbus.data();//データを読み込む
-    for (int i=0; i<3; i++){
-      //各チャネルに対応する値を表示
-      Serial.print("ch");
-      Serial.print(i);
-      Serial.print(": ");
-      Serial.print(data.ch[i]);
-      Serial.print(i==2? "\n" : " ");
-      //maxは1680,minは368。0が1011。
-    }
+  //PModでデータを得るところ
+  if (imu.gyroAvailable()){
+    imu.readGyro();
   }
+
+  if ( imu.accelAvailable() ){
+    imu.readAccel();
+  }
+
+  if ( imu.magAvailable() ){
+    imu.readMag();
+  }
+
+  if ((lastPrint + PRINT_SPEED) < millis()){
+    inputGyro(imu,kalmanfilter.gyro);
+    printAttitude(imu, kalmanfilter.acc, kalmanfilter.mag, kalmanfilter.euler);
+    
+    kalmanfilter.update(kalmanfilter.gyro, kalmanfilter.acc, kalmanfilter.mag, dt);
+    kalmanfilter.filtered_euler();
+    // //filtered_eulerがカルマンフィルタを通したあとの値。
+
+    lastPrint = millis(); // Update lastPrint time
+  }
+
+  // //servo部分
+  // ledcWrite(servo_aileron.channel,servo_aileron.duty);
+  // ledcWrite(servo_elevator.channel,servo_elevator.duty);
+
+  // //sbus部分
+  // if (sbus.Read()){
+  //   data = sbus.data();//データを読み込む
+  //   for (int i=0; i<3; i++){
+  //     //各チャネルに対応する値を表示
+  //     Serial.print("ch");
+  //     Serial.print(i);
+  //     Serial.print(": ");
+  //     Serial.print(data.ch[i]);
+  //     Serial.print(i==2? "\n" : " ");
+  //     //maxは1680,minは368。0が1011。
+  //   }
+  // }
 }

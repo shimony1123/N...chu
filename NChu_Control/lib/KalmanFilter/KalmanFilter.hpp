@@ -14,7 +14,7 @@ struct KalmanFilter{
  	Eigen::Matrix4f B;//4*4の単位行列
  	//Eigen::MatrixXf C;
  	Eigen::Matrix4f Q; //vの共分散。要チューニング
- 	Eigen::Matrix4f R; //wの共分散。要チューニング
+ 	Eigen::MatrixXf R = Eigen::MatrixXf::Zero(6,6); //wの共分散。要チューニング
     Eigen::Matrix4f F;
     Eigen::MatrixXf H = Eigen::MatrixXf::Zero(6,4);
  	
@@ -23,7 +23,7 @@ struct KalmanFilter{
  	Eigen::Vector4f x; //状態量として今回はクォータニオンを取っている。setupで初期値の設定が必要。
 
 	//初期値
-	Eigen::Vector4f mag_calib; //地磁気の初期値。setupでPmodから取る。
+	Eigen::Vector3f mag_calib; //地磁気の初期値。setupでPmodから取る。
 
 	//重力加速度(定数)
 	const float g = 9.80665;
