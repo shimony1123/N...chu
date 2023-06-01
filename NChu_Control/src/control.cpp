@@ -1,6 +1,6 @@
 #include "ArduinoEigen.h"
 
- Eigen::Vector2f P_control(Eigen::Vector3f euler,float channel1,float channel2){
+Eigen::Vector2f P_control(Eigen::Vector3f euler,float channel1,float channel2){
     //引数eulerにはカルマンフィルタを通した後のオイラー角が入る。
     float duty_roll; //出力するPWMのduty比
     float duty_pitch; //出力するPWMのduty比

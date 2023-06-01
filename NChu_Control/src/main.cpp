@@ -42,7 +42,7 @@ void inputAccel(LSM9DS1 &imu, Eigen::Vector3f &acc); //加速度の値を引数�
 void inputMag(LSM9DS1 &imu, Eigen::Vector3f &mag); //地磁気の値を引数のベクトルに代入
 void attitude(LSM9DS1 &imu, Eigen::Vector3f &acc, Eigen::Vector3f &mag, Eigen::Vector3f &euler);
 //attitude()は引数のeulerにrawデータのオイラー角を代入する。
-float P_control(Eigen::Vector3f euler,float channel1,float channel2);
+Eigen::Vector2f P_control(Eigen::Vector3f euler,float channel1,float channel2);
 
 //calibration関数。setup()で一度だけ呼ばれる。
 void calib(){
@@ -108,36 +108,35 @@ void loop(){
     kalmanfilter.update(kalmanfilter.gyro, kalmanfilter.acc, kalmanfilter.mag, dt);
     kalmanfilter.filtered_euler();
 
-    // フィルタリング済みのオイラー角をここでprint。
+  //sbus部分
+  if (sbus.Read()){
+    data = sbus.data();//データを読み込む
+    for (int i=0; i<3; i++){
+      //各チャネルに対応する値を表示
+      Serial.print("ch");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(data.ch[i]);
+      Serial.print(i==2? "\n" : " ");
+      //maxは1680,minは368。0が1011。
+      //ch0がroll,ch1がpitch,ch2がスロットル
+    }
+  }
+
+  // フィルタリング済みのオイラー角をここでprint。
     Serial.print("filtered_roll = ");
     Serial.println(kalmanfilter.f_euler(0));
     Serial.print("filtered_pitch = ");
     Serial.println(kalmanfilter.f_euler(1));
     Serial.print("filtered_yaw = ");
     Serial.println(kalmanfilter.f_euler(2));
+    servo_aileron.duty = P_control(kalmanfilter.f_euler, data.ch[0], data.ch[1])[0];
+    servo_elevator.duty = P_control(kalmanfilter.f_euler, data.ch[0], data.ch[1])[1];
 
     lastPrint = millis(); // Update lastPrint time
   }
 
-  // //sbus部分
-  // if (sbus.Read()){
-  //   data = sbus.data();//データを読み込む
-  //   for (int i=0; i<3; i++){
-  //     //各チャネルに対応する値を表示
-  //     Serial.print("ch");
-  //     Serial.print(i);
-  //     Serial.print(": ");
-  //     Serial.print(data.ch[i]);
-  //     Serial.print(i==2? "\n" : " ");
-  //     //maxは1680,minは368。0が1011。
-  //     //ch0がroll,ch1がpitch,ch2がスロットル
-  //   }
-  // }
-
-  // //servo部分
-  // ledcWrite(servo_aileron.channel,servo_aileron.duty);
-  // ledcWrite(servo_elevator.channel,servo_elevator.duty);
-
-  // 制御の部分
-  
+  //servo部分
+  ledcWrite(servo_aileron.channel,servo_aileron.duty);
+  ledcWrite(servo_elevator.channel,servo_elevator.duty);
 }
